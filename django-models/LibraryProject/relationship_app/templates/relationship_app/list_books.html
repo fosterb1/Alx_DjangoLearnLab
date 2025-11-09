@@ -21,5 +21,17 @@
         {% endfor %}
     </ul>
     <p><a href="{% url 'relationship_app:library_list' %}">View Libraries</a></p>
+    <div style="position: absolute; top: 20px; right: 20px;">
+    {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}! 
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        </p>
+    {% else %}
+        <p>
+            <a href="{% url 'relationship_app:login' %}">Login</a> | 
+            <a href="{% url 'relationship_app:register' %}">Register</a>
+        </p>
+    {% endif %}
+</div>
 </body>
 </html>
