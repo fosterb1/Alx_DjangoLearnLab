@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import DetailView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import permission_required  # Explicit import
 from django.contrib import messages
 from .models import Book, Library, UserProfile, Author
 from .forms import BookForm  # Make sure you have this form
+
+# ... rest of your code remains the same ...
 
 # Role check functions for user_passes_test
 def is_admin(user):
