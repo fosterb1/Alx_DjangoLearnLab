@@ -1,7 +1,6 @@
 # relationship_app/urls.py
 from django.urls import path
 from . import views
-from django.contrib.auth import views as auth_views
 
 app_name = 'relationship_app'
 
@@ -11,7 +10,12 @@ urlpatterns = [
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
     
-    # Protected views (require login)
+    # Role-based views
+    path('admin/', views.admin_view, name='admin_view'),
+    path('librarian/', views.librarian_view, name='librarian_view'),
+    path('member/', views.member_view, name='member_view'),
+    
+    # Protected views
     path('books/', views.list_books, name='list_books'),
     path('libraries/', views.LibraryListView.as_view(), name='library_list'),
     path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
