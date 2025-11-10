@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import DetailView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib import messages
-from .models import Book, Library, UserProfile
+from .models import Book, Library, UserProfile, Author
+from .forms import BookForm  # Make sure you have this form
 
 # Role check functions for user_passes_test
 def is_admin(user):
@@ -41,6 +42,50 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'relationship_app/register.html', {'form': form})
+
+# Views with permission_required decorator (required by the check)
+@permission_required('relationship_app.can_add_book', raise_exception=True)
+def add_book(request):
+    """View to add a new book (requires can_add_book permission)"""
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            book = form.save()
+            messages.success(request, f'Book "{book.title}" added successfully!')
+            return redirect('relationship_app:list_books')
+    else:
+        form = BookForm()
+    
+    return render(request, 'relationship_app/add_book.html', {'form': form})
+
+@permission_required('relationship_app.can_change_book', raise_exception=True)
+def edit_book(request, pk):
+    """View to edit an existing book (requires can_change_book permission)"""
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            book = form.save()
+            messages.success(request, f'Book "{book.title}" updated successfully!')
+            return redirect('relationship_app:list_books')
+    else:
+        form = BookForm(instance=book)
+    
+    return render(request, 'relationship_app/edit_book.html', {'form': form, 'book': book})
+
+@permission_required('relationship_app.can_delete_book', raise_exception=True)
+def delete_book(request, pk):
+    """View to delete a book (requires can_delete_book permission)"""
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        book_title = book.title
+        book.delete()
+        messages.success(request, f'Book "{book_title}" deleted successfully!')
+        return redirect('relationship_app:list_books')
+    
+    return render(request, 'relationship_app/delete_book.html', {'book': book})
 
 # Role-based views using @user_passes_test decorator
 @user_passes_test(is_admin, login_url='/relationship/login/')
