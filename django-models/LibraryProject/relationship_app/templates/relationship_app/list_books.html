@@ -1,37 +1,15 @@
-<!-- relationship_app/templates/relationship_app/list_books.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>List of Books</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: #333; }
-        ul { list-style-type: none; padding: 0; }
-        li { padding: 8px; margin: 5px 0; background: #f4f4f4; border-radius: 4px; }
-    </style>
 </head>
 <body>
     <h1>Books Available:</h1>
     <ul>
         {% for book in books %}
-        <li><strong>{{ book.title }}</strong> by {{ book.author.name }}</li>
-        {% empty %}
-        <li>No books available.</li>
+        <li>{{ book.title }} by {{ book.author.name }}</li>
         {% endfor %}
     </ul>
-    <p><a href="{% url 'relationship_app:library_list' %}">View Libraries</a></p>
-    <div style="position: absolute; top: 20px; right: 20px;">
-    {% if user.is_authenticated %}
-        <p>Welcome, {{ user.username }}! 
-        <a href="{% url 'relationship_app:logout' %}">Logout</a>
-        </p>
-    {% else %}
-        <p>
-            <a href="{% url 'relationship_app:login' %}">Login</a> | 
-            <a href="{% url 'relationship_app:register' %}">Register</a>
-        </p>
-    {% endif %}
-</div>
 </body>
 </html>
