@@ -12,5 +12,6 @@
         <li>{{ book.title }} by {{ book.author.name }} (Published {{ book.publication_year }})</li>
         {% endfor %}
     </ul>
+    <a href="{% url 'relationship_app:list_books' %}">Back to Books</a>
 </body>
 </html>
