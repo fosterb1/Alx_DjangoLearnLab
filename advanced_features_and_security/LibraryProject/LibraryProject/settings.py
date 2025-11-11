@@ -18,6 +18,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 AUTH_USER_MODEL = 'relationship_app.CustomUser'
 
+SECRET_KEY = 'django-insecure-your-secret-key-here'
+
+DEBUG = True
+ALLOWED_HOSTS = []
 # Add media settings for profile photos
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -55,6 +59,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'bookshelf',
     'relationship_app',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -66,6 +71,8 @@ INSTALLED_APPS = [
     
 ]
 
+AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -75,6 +82,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'LibraryProject.urls'
 
