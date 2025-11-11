@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ action }} Book</title>
+    <!-- CSP will restrict external resources -->
+</head>
+<body>
+    <h1>{{ action }} Book</h1>
+    
+    <!-- CSRF Token - Essential for CSRF protection -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}  <!-- CSRF PROTECTION -->
+        
+        {{ form.as_p }}
+        
+        <button type="submit">{{ action }} Book</button>
+    </form>
+    
+    <a href="{% url 'bookshelf:book_list' %}">Cancel</a>
+</body>
+</html>

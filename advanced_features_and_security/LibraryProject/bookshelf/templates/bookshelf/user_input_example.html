@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Safe User Input Example</title>
+</head>
+<body>
+    <h1>Safe User Input Handling</h1>
+    
+    <!-- Form with CSRF protection -->
+    <form method="post">
+        {% csrf_token %}  <!-- CSRF PROTECTION -->
+        
+        <label for="user_input">Enter text:</label>
+        <input type="text" id="user_input" name="user_input" required>
+        <button type="submit">Submit</button>
+    </form>
+    
+    {% if user_input %}
+    <h2>Your input (safely displayed):</h2>
+    <!-- User input is automatically escaped by Django templates -->
+    <p>{{ user_input }}</p>
+    
+    <h2>Raw output (for demonstration):</h2>
+    <!-- This demonstrates the difference - don't use autoescape off in production -->
+    {% autoescape off %}
+    <p><strong>Warning:</strong> {{ user_input }}</p>
+    {% endautoescape %}
+    {% endif %}
+    
+    <!-- SECURITY NOTES:
+    - CSRF token prevents Cross-Site Request Forgery
+    - Django template auto-escaping prevents XSS
+    - Never use |safe filter with user input
+    - Avoid {% autoescape off %} with user content
+    -->
+</body>
+</html>
