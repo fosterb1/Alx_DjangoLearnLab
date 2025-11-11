@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List of Books</title>
+</head>
+<body>
+    <h1>Books Available:</h1>
+    <ul>
+        {% for book in books %}
+        <li>{{ book.title }} by {{ book.author.name }}</li>
+        {% endfor %}
+    </ul>
+    
+    <div>
+        {% if user.is_authenticated %}
+            <p>Welcome, {{ user.username }}! <a href="{% url 'relationship_app:logout' %}">Logout</a></p>
+        {% else %}
+            <p><a href="{% url 'relationship_app:login' %}">Login</a> | <a href="{% url 'relationship_app:register' %}">Register</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>

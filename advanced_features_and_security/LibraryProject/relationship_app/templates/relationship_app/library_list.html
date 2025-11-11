@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Libraries</title>
+</head>
+<body>
+    <h1>All Libraries</h1>
+    <ul>
+    {% for library in libraries %}
+        <li>
+            <a href="{% url 'relationship_app:library_detail' library.pk %}">
+                {{ library.name }}
+            </a>
+            - {{ library.location }}
+        </li>
+    {% empty %}
+        <li>No libraries available.</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!-- relationship_app/templates/relationship_app/delete_book.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Book</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
+        h1 { color: #dc3545; }
+        .warning { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        button { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 0 10px; }
+        button:hover { background: #c82333; }
+        .btn-cancel { background: #6c757d; }
+        .btn-cancel:hover { background: #5a6268; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #007cba; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="{% url 'relationship_app:book_management' %}">← Back to Book Management</a>
+        <a href="{% url 'relationship_app:list_books' %}">All Books</a>
+    </div>
+
+    <h1>🗑️ Delete Book</h1>
+    
+    <div class="warning">
+        <h2>⚠️ Warning!</h2>
+        <p>You are about to delete the book: <strong>"{{ book.title }}"</strong> by {{ book.author.name }}</p>
+        <p>This action cannot be undone!</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Yes, Delete This Book</button>
+        <a href="{% url 'relationship_app:book_management' %}" class="btn-cancel" style="padding: 10px 20px; text-decoration: none; display: inline-block;">Cancel</a>
+    </form>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!-- relationship_app/templates/relationship_app/logout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logout</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
+        h1 { color: #333; }
+        .message { background: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        a { color: #007cba; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Logout Successful</h1>
+    <div class="message">
+        You have been successfully logged out.
+    </div>
+    <p><a href="{% url 'relationship_app:login' %}">Login again</a></p>
+    <p><a href="{% url 'relationship_app:register' %}">Create a new account</a></p>
+</body>
+</html>

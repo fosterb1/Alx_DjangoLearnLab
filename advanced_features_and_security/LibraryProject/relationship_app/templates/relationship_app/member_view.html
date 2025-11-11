@@ -1,0 +1,74 @@
+<!-- relationship_app/templates/relationship_app/member_view.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #28a745; }
+        .welcome { background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .library-list, .book-list { margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #007cba; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="{% url 'relationship_app:list_books' %}">All Books</a>
+        <a href="{% url 'relationship_app:library_list' %}">All Libraries</a>
+        <a href="{% url 'relationship_app:logout' %}">Logout</a>
+    </div>
+
+    <h1>👤 Member Dashboard</h1>
+    
+    <div class="welcome">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p>Your role: <strong>{{ user_role }}</strong></p>
+        <p>As a member, you can browse books and libraries. Contact a librarian for assistance.</p>
+    </div>
+
+    <div class="book-list">
+        <h2>Available Books</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="library-list">
+        <h2>Our Libraries</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Library Name</th>
+                    <th>Books Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for library in libraries %}
+                <tr>
+                    <td>{{ library.name }}</td>
+                    <td>{{ library.books.count }} books</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
