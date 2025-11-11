@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.utils.html import escape
 from .models import Book
-from .forms import BookForm
+from .forms import BookForm, ExampleForm, SecureSearchForm, UserRegistrationForm
 
 @login_required
 @permission_required('bookshelf.can_view', raise_exception=True)
@@ -14,22 +14,26 @@ def book_list(request):
     Secure book listing view with proper input validation.
     Uses Django ORM to prevent SQL injection.
     """
+    # Use the secure search form
+    search_form = SecureSearchForm(request.GET or None)
+    books = Book.objects.all()
+    
     # Safe search functionality - uses Django ORM parameterization
-    query = request.GET.get('q', '')
-    if query:
-        # Properly escaped and parameterized search
-        safe_query = escape(query)
-        books = Book.objects.filter(
-            Q(title__icontains=safe_query) | 
-            Q(author__icontains=safe_query) |
-            Q(isbn__icontains=safe_query)
-        )
-    else:
-        books = Book.objects.all()
+    if search_form.is_valid():
+        query = search_form.cleaned_data.get('query', '')
+        search_type = search_form.cleaned_data.get('search_type', 'title')
+        
+        if query:
+            if search_type == 'title':
+                books = books.filter(title__icontains=query)
+            elif search_type == 'author':
+                books = books.filter(author__icontains=query)
+            elif search_type == 'isbn':
+                books = books.filter(isbn__icontains=query)
     
     return render(request, 'bookshelf/book_list.html', {
         'books': books, 
-        'query': query
+        'search_form': search_form
     })
 
 @login_required
@@ -81,31 +85,101 @@ def book_edit(request, pk):
     })
 
 @login_required
-def safe_search(request):
+@permission_required('bookshelf.can_delete', raise_exception=True)
+def book_delete(request, pk):
     """
-    Example of secure search functionality.
+    View to delete a book - requires can_delete permission
+    """
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == 'POST':
+        book_title = book.title
+        book.delete()
+        messages.success(request, f'Book "{book_title}" deleted successfully!')
+        return redirect('bookshelf:book_list')
+    return render(request, 'bookshelf/book_confirm_delete.html', {'book': book})
+
+@login_required
+def book_dashboard(request):
+    """
+    Dashboard showing available actions based on permissions
+    """
+    user_permissions = {
+        'can_view': request.user.has_perm('bookshelf.can_view'),
+        'can_create': request.user.has_perm('bookshelf.can_create'),
+        'can_edit': request.user.has_perm('bookshelf.can_edit'),
+        'can_delete': request.user.has_perm('bookshelf.can_delete'),
+    }
+    return render(request, 'bookshelf/dashboard.html', {'user_permissions': user_permissions})
+
+def example_form_view(request):
+    """
+    View demonstrating secure form handling with ExampleForm.
+    Shows proper CSRF protection and input validation.
+    """
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            # Process secure form data
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            age = form.cleaned_data['age']
+            agree_to_terms = form.cleaned_data['agree_to_terms']
+            
+            # In a real application, you would save to database here
+            # All data is already sanitized by the form
+            
+            messages.success(request, 
+                f"Thank you {name}! Your message has been securely processed."
+            )
+            return redirect('bookshelf:example_form_success')
+    else:
+        form = ExampleForm()
+    
+    return render(request, 'bookshelf/example_form.html', {
+        'form': form,
+        'title': 'Secure Example Form'
+    })
+
+def example_form_success(request):
+    """
+    Success page after ExampleForm submission
+    """
+    return render(request, 'bookshelf/example_form_success.html', {
+        'title': 'Form Submitted Successfully'
+    })
+
+def secure_search(request):
+    """
+    Example of secure search functionality using SecureSearchForm.
     Demonstrates proper input sanitization and ORM usage.
     """
-    # Get and sanitize user input
-    search_term = request.GET.get('search', '')
-    sanitized_term = escape(search_term)
+    search_form = SecureSearchForm(request.GET or None)
+    books = Book.objects.none()
     
-    # Use Django ORM to prevent SQL injection
-    if sanitized_term:
-        books = Book.objects.filter(
-            title__icontains=sanitized_term
-        )[:10]  # Limit results
-    else:
-        books = Book.objects.none()
+    if search_form.is_valid():
+        query = search_form.cleaned_data.get('query', '')
+        search_type = search_form.cleaned_data.get('search_type', 'title')
+        
+        if query:
+            # Use Django ORM to prevent SQL injection
+            if search_type == 'title':
+                books = Book.objects.filter(title__icontains=query)
+            elif search_type == 'author':
+                books = Book.objects.filter(author__icontains=query)
+            elif search_type == 'isbn':
+                books = Book.objects.filter(isbn__icontains=query)
     
-    return render(request, 'bookshelf/search_results.html', {
+    return render(request, 'bookshelf/secure_search.html', {
+        'search_form': search_form,
         'books': books,
-        'search_term': sanitized_term
+        'query': search_form.cleaned_data.get('query', '') if search_form.is_valid() else ''
     })
 
 def user_input_example(request):
     """
     Example view demonstrating safe handling of user input.
+    Shows the importance of escaping user content.
     """
     user_input = ""
     if request.method == 'POST':
@@ -114,4 +188,26 @@ def user_input_example(request):
     
     return render(request, 'bookshelf/user_input_example.html', {
         'user_input': user_input
+    })
+
+def user_registration(request):
+    """
+    Secure user registration view using UserRegistrationForm.
+    Demonstrates proper user creation with security measures.
+    """
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 
+                f"Account created successfully for {user.email}! "
+                "You can now log in."
+            )
+            return redirect('bookshelf:book_list')
+    else:
+        form = UserRegistrationForm()
+    
+    return render(request, 'bookshelf/user_registration.html', {
+        'form': form,
+        'title': 'Secure User Registration'
     })
