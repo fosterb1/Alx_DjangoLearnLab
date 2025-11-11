@@ -1,7 +1,8 @@
 # bookshelf/models.py
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, Permission
 from django.utils.translation import gettext_lazy as _
+from django.contrib.contenttypes.models import ContentType
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -17,12 +18,6 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
-
         return self.create_user(email, password, **extra_fields)
 
 class CustomUser(AbstractUser):
@@ -38,3 +33,22 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=100)
+    isbn = models.CharField(max_length=13, unique=True)
+    published_date = models.DateField()
+    description = models.TextField(blank=True)
+    
+    class Meta:
+        permissions = [
+            # Custom permissions as specified in the task
+            ("can_view", "Can view books"),
+            ("can_create", "Can create books"), 
+            ("can_edit", "Can edit books"),
+            ("can_delete", "Can delete books"),
+        ]
+    
+    def __str__(self):
+        return self.title

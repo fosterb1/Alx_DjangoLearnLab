@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Management Dashboard</title>
+</head>
+<body>
+    <h1>Book Management Dashboard</h1>
+    <p>Welcome, {{ user.email }}</p>
+    
+    <h2>Available Actions:</h2>
+    <ul>
+        {% if user_permissions.can_view %}
+        <li><a href="{% url 'bookshelf:book_list' %}">View Books</a></li>
+        {% endif %}
+        {% if user_permissions.can_create %}
+        <li><a href="{% url 'bookshelf:book_create' %}">Create New Book</a></li>
+        {% endif %}
+    </ul>
+    
+    <h2>Your Permissions:</h2>
+    <ul>
+        <li>Can View: {{ user_permissions.can_view|yesno:"Yes,No" }}</li>
+        <li>Can Create: {{ user_permissions.can_create|yesno:"Yes,No" }}</li>
+        <li>Can Edit: {{ user_permissions.can_edit|yesno:"Yes,No" }}</li>
+        <li>Can Delete: {{ user_permissions.can_delete|yesno:"Yes,No" }}</li>
+    </ul>
+</body>
+</html>
