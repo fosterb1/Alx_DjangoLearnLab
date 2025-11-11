@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Example - Security Demonstration</title>
+    <style>
+        .form-control { 
+            margin: 10px 0; 
+            padding: 8px; 
+            width: 100%; 
+            max-width: 400px; 
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .error { 
+            color: red; 
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .success { 
+            color: green; 
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .security-notes {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Security-Enhanced Form Example</h1>
+    <p>This form demonstrates Django security best practices including CSRF protection, input validation, and XSS prevention.</p>
+    
+    <!-- CSRF Token - Essential for CSRF protection -->
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="error" style="background: #f8d7da; padding: 10px; border-radius: 4px;">
+                <strong>Please correct the following errors:</strong>
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="id_name">Full Name:</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="error">{{ form.name.errors }}</div>
+            {% endif %}
+            <small>Enter your full name (special characters will be safely escaped)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_email">Email Address:</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="error">{{ form.email.errors }}</div>
+            {% endif %}
+            <small>We'll never share your email with anyone else</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_message">Your Message:</label>
+            {{ form.message }}
+            {% if form.message.errors %}
+                <div class="error">{{ form.message.errors }}</div>
+            {% endif %}
+            <small>Maximum 1000 characters allowed</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_age">Age (Optional):</label>
+            {{ form.age }}
+            {% if form.age.errors %}
+                <div class="error">{{ form.age.errors }}</div>
+            {% endif %}
+            <small>Must be between 0 and 150</small>
+        </div>
+        
+        <div class="form-group">
+            {{ form.agree_to_terms }}
+            <label for="id_agree_to_terms" style="display: inline; font-weight: normal;">
+                I agree to the <a href="#" target="_blank">terms and conditions</a>
+            </label>
+            {% if form.agree_to_terms.errors %}
+                <div class="error">{{ form.agree_to_terms.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <button type="submit">Submit Securely</button>
+    </form>
+    
+    <p style="margin-top: 20px;">
+        <a href="{% url 'bookshelf:dashboard' %}">← Back to Dashboard</a>
+    </p>
+    
+    <!-- Security Features Documentation -->
+    <div class="security-notes">
+        <h3>🔒 Security Features Implemented:</h3>
+        <ul>
+            <li><strong>CSRF Protection:</strong> Form includes {% verbatim %}{% csrf_token %}{% endverbatim %} to prevent Cross-Site Request Forgery attacks</li>
+            <li><strong>Input Validation:</strong> All form fields are validated server-side using Django forms</li>
+            <li><strong>XSS Prevention:</strong> User input is automatically escaped in templates</li>
+            <li><strong>SQL Injection Protection:</strong> Using Django ORM with parameterized queries</li>
+            <li><strong>Content Security:</strong> Form includes proper sanitization of all inputs</li>
+            <li><strong>Secure Headers:</strong> CSP and other security headers are implemented</li>
+        </ul>
+        
+        <h3>🛡️ Security Testing:</h3>
+        <p>Try submitting these test inputs to see security in action:</p>
+        <ul>
+            <li>Name: <code>&lt;script&gt;alert('xss')&lt;/script&gt;</code></li>
+            <li>Email: <code>test@example.com' OR '1'='1</code></li>
+            <li>Message: <code>javascript:alert('xss')</code></li>
+        </ul>
+        <p>All malicious inputs will be safely escaped and validated.</p>
+    </div>
+
+    <!-- Display messages if any -->
+    {% if messages %}
+    <div style="margin-top: 20px;">
+        {% for message in messages %}
+            <div class="{% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Security Best Practices Note -->
+    <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107;">
+        <h3>💡 Security Best Practices Demonstrated:</h3>
+        <ol>
+            <li>Always use Django forms for input validation</li>
+            <li>Include CSRF tokens in all POST forms</li>
+            <li>Escape all user-generated content in templates</li>
+            <li>Use Django's ORM to prevent SQL injection</li>
+            <li>Implement proper error handling without information leakage</li>
+            <li>Validate and sanitize data on both client and server side</li>
+        </ol>
+    </div>
+</body>
+</html>
