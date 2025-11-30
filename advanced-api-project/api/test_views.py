@@ -25,7 +25,8 @@ class BookAPITestCase(APITestCase):
         )
         self.admin_user = User.objects.create_superuser(
             username='adminuser',
-            password='adminpassword123'
+            password='adminpassword123',
+            email='admin@example.com'
         )
         
         # Create test authors
@@ -53,14 +54,14 @@ class BookAPITestCase(APITestCase):
         self.client = APIClient()
     
     def authenticate_user(self, user=None):
-        """Helper method to authenticate a user for testing"""
+        """Helper method to authenticate a user for testing using login"""
         if user is None:
             user = self.user
-        self.client.force_authenticate(user=user)
+        self.client.login(username=user.username, password='testpassword123')
     
     def unauthenticate_user(self):
-        """Helper method to remove authentication"""
-        self.client.force_authenticate(user=None)
+        """Helper method to remove authentication using logout"""
+        self.client.logout()
 
 
 class BookCRUDTests(BookAPITestCase):
@@ -98,7 +99,8 @@ class BookCRUDTests(BookAPITestCase):
         Test that authenticated users can create new books.
         Expected: 201 Created status and book is created in database.
         """
-        self.authenticate_user()
+        # Use self.client.login to authenticate
+        self.client.login(username='testuser', password='testpassword123')
         url = reverse('book-create')
         data = {
             'title': 'New Test Book',
@@ -132,7 +134,8 @@ class BookCRUDTests(BookAPITestCase):
         Test that authenticated users can update existing books.
         Expected: 200 OK status and book is updated in database.
         """
-        self.authenticate_user()
+        # Use self.client.login to authenticate
+        self.client.login(username='testuser', password='testpassword123')
         url = reverse('book-update', kwargs={'pk': self.book1.pk})
         data = {
             'title': 'Updated Book Title',
@@ -166,7 +169,8 @@ class BookCRUDTests(BookAPITestCase):
         Test that authenticated users can delete books.
         Expected: 204 No Content status and book is removed from database.
         """
-        self.authenticate_user()
+        # Use self.client.login to authenticate
+        self.client.login(username='testuser', password='testpassword123')
         url = reverse('book-delete', kwargs={'pk': self.book1.pk})
         response = self.client.delete(url)
         
@@ -185,6 +189,22 @@ class BookCRUDTests(BookAPITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Book.objects.count(), 3)  # Book still exists
+    
+    def test_login_functionality(self):
+        """
+        Test that self.client.login works correctly for authentication.
+        """
+        # Test login with correct credentials
+        login_success = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_success)
+        
+        # Test login with wrong password
+        login_failure = self.client.login(username='testuser', password='wrongpassword')
+        self.assertFalse(login_failure)
+        
+        # Test login with non-existent user
+        login_failure = self.client.login(username='nonexistent', password='testpassword123')
+        self.assertFalse(login_failure)
 
 
 class BookFilterSearchOrderTests(BookAPITestCase):
@@ -240,7 +260,6 @@ class BookFilterSearchOrderTests(BookAPITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # Both Harry Potter books
-        # Note: Author name might not be in response data depending on serializer
     
     def test_order_books_by_title_ascending(self):
         """
@@ -295,7 +314,8 @@ class BookValidationTests(BookAPITestCase):
         Test that books cannot be created with future publication years.
         Expected: 400 Bad Request status with validation error.
         """
-        self.authenticate_user()
+        # Use self.client.login for authentication
+        self.client.login(username='testuser', password='testpassword123')
         url = reverse('book-create')
         future_year = datetime.now().year + 1
         data = {
@@ -313,7 +333,8 @@ class BookValidationTests(BookAPITestCase):
         Test that books cannot be created with non-existent author.
         Expected: 400 Bad Request status with validation error.
         """
-        self.authenticate_user()
+        # Use self.client.login for authentication
+        self.client.login(username='testuser', password='testpassword123')
         url = reverse('book-create')
         data = {
             'title': 'Book with Invalid Author',
@@ -333,6 +354,51 @@ class BookValidationTests(BookAPITestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class AuthenticationTests(BookAPITestCase):
+    """
+    Specific tests for authentication using self.client.login
+    """
+    
+    def test_client_login_success(self):
+        """
+        Test that self.client.login works with correct credentials.
+        """
+        result = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(result)
+    
+    def test_client_login_failure_wrong_password(self):
+        """
+        Test that self.client.login fails with wrong password.
+        """
+        result = self.client.login(username='testuser', password='wrongpassword')
+        self.assertFalse(result)
+    
+    def test_client_login_failure_wrong_username(self):
+        """
+        Test that self.client.login fails with wrong username.
+        """
+        result = self.client.login(username='wronguser', password='testpassword123')
+        self.assertFalse(result)
+    
+    def test_access_protected_endpoint_after_login(self):
+        """
+        Test that protected endpoints work after successful login.
+        """
+        # Login first
+        self.client.login(username='testuser', password='testpassword123')
+        
+        # Then access protected endpoint
+        url = reverse('book-create')
+        data = {
+            'title': 'Book After Login',
+            'publication_year': 2020,
+            'author': self.author1.pk
+        }
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
 class AuthorAPITests(APITestCase):
