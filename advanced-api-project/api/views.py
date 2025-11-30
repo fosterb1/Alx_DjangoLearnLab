@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions, filters
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Book, Author
 from .serializers import BookSerializer, AuthorSerializer
@@ -41,7 +42,7 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Using the specific import
 
     def perform_create(self, serializer):
         """
@@ -59,7 +60,7 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Using the specific import
 
     def perform_update(self, serializer):
         """
@@ -77,7 +78,7 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Authenticated users only
+    permission_classes = [IsAuthenticated]  # Using the specific import
 
     def perform_destroy(self, instance):
         """
