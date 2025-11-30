@@ -6,95 +6,86 @@ from .serializers import BookSerializer, AuthorSerializer
 
 class BookListView(generics.ListAPIView):
     """
-    ListView for retrieving all Book instances.
+    ListView for retrieving all Book instances with advanced query capabilities.
     
-    Provides read-only access to all books in the database.
-    Accessible to both authenticated and unauthenticated users.
+    Features Implemented:
+    - Filtering: Filter books by author ID and publication year
+    - Searching: Search across book titles and author names
+    - Ordering: Order results by title, publication year, or author name
+    
+    Query Parameters Examples:
+    - Filtering: /api/books/?author=1&publication_year=2020
+    - Searching: /api/books/?search=harry
+    - Ordering: /api/books/?ordering=title or /api/books/?ordering=-publication_year
     """
     queryset = Book.objects.all().select_related('author')
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    # Add filtering and search functionality
+    # Filtering configuration
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    # Fields available for exact filtering
     filterset_fields = ['author', 'publication_year']
+    
+    # Fields available for text search
     search_fields = ['title', 'author__name']
-    ordering_fields = ['title', 'publication_year']
-    ordering = ['title']  # Default ordering
+    
+    # Fields available for ordering
+    ordering_fields = ['title', 'publication_year', 'author__name']
+    
+    # Default ordering if no ordering specified
+    ordering = ['title']
 
 class BookDetailView(generics.RetrieveAPIView):
     """
     DetailView for retrieving a single Book instance by ID.
-    
-    Provides read-only access to a specific book's details.
-    Accessible to both authenticated and unauthenticated users.
     """
     queryset = Book.objects.all().select_related('author')
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Public access
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class BookCreateView(generics.CreateAPIView):
     """
     CreateView for adding a new Book instance.
-    
-    Handles POST requests to create new books with data validation.
-    Restricted to authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Using the specific import
-
-    def perform_create(self, serializer):
-        """
-        Custom method called when creating a new book instance.
-        Can be extended to add additional logic during creation.
-        """
-        serializer.save()
+    permission_classes = [IsAuthenticated]
 
 class BookUpdateView(generics.UpdateAPIView):
     """
     UpdateView for modifying an existing Book instance.
-    
-    Handles PUT and PATCH requests to update book details.
-    Restricted to authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Using the specific import
-
-    def perform_update(self, serializer):
-        """
-        Custom method called when updating a book instance.
-        Can be extended to add additional logic during update.
-        """
-        serializer.save()
+    permission_classes = [IsAuthenticated]
 
 class BookDeleteView(generics.DestroyAPIView):
     """
     DeleteView for removing a Book instance.
-    
-    Handles DELETE requests to remove books from the database.
-    Restricted to authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Using the specific import
+    permission_classes = [IsAuthenticated]
 
-    def perform_destroy(self, instance):
-        """
-        Custom method called when deleting a book instance.
-        Can be extended to add additional logic during deletion.
-        """
-        instance.delete()
-
-# Optional: Author views for completeness
+# Optional: Add filtering to Author views as well
 class AuthorListView(generics.ListAPIView):
     """
-    ListView for retrieving all Author instances with their books.
+    ListView for retrieving all Author instances with filtering and search capabilities.
+    
+    Query Parameters Examples:
+    - Searching: /api/authors/?search=rowling
+    - Ordering: /api/authors/?ordering=name
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name']
+    ordering_fields = ['name']
+    ordering = ['name']
 
 class AuthorDetailView(generics.RetrieveAPIView):
     """
@@ -102,4 +93,4 @@ class AuthorDetailView(generics.RetrieveAPIView):
     """
     queryset = Author.objects.all().prefetch_related('books')
     serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
