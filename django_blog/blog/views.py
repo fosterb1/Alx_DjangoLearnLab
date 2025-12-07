@@ -292,7 +292,7 @@ def search_posts(request):
 
 def posts_by_tag(request, tag_name):
     """
-    Filter posts by tag
+    Filter posts by tag (function-based view)
     - Shows all posts with specified tag
     """
     tag = get_object_or_404(Tag, name=tag_name)
@@ -303,3 +303,28 @@ def posts_by_tag(request, tag_name):
         'posts': posts,
     }
     return render(request, 'blog/posts_by_tag.html', context)
+
+class PostByTagListView(ListView):
+    """
+    Filter posts by tag (class-based view using slug)
+    - Uses django-taggit for tag filtering
+    - Slug-based URL parameter
+    - Public access
+    """
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        """Filter posts by tag slug using taggit"""
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(taggit_tags__slug=tag_slug).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        # Get tag from taggit
+        from taggit.models import Tag as TaggitTag
+        context['tag'] = get_object_or_404(TaggitTag, slug=tag_slug)
+        return context

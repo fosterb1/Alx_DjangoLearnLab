@@ -66,8 +66,11 @@ urlpatterns = [
     # Search posts
     path('search/', views.search_posts, name='search_posts'),
     
-    # Filter posts by tag
+    # Filter posts by tag (function-based, name parameter)
     path('tags/<str:tag_name>/', views.posts_by_tag, name='posts_by_tag'),
+    
+    # Filter posts by tag (class-based, slug parameter with django-taggit)
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='posts_by_tag_slug'),
     
     # Optional: Password reset URLs
     path('password-change/', 
