@@ -1,0 +1,41 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Delete Post - Django Blog{% endblock %}
+
+{% block content %}
+<div class="delete-confirmation-container">
+  <div class="confirmation-card">
+    <div class="confirmation-icon">
+      <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+    </div>
+
+    <h2>Delete Post</h2>
+
+    <div class="confirmation-message">
+      <p>Are you sure you want to delete the post:</p>
+      <h3>"{{ object.title }}"</h3>
+      <p class="text-muted">This action cannot be undone.</p>
+    </div>
+
+    <div class="post-preview">
+      <h4>Post Preview:</h4>
+      <p>{{ object.content|truncatewords:50 }}</p>
+    </div>
+
+    <form method="post" class="confirmation-form">
+      {% csrf_token %}
+      <div class="confirmation-actions">
+        <button type="submit" class="btn btn-danger">
+          <i class="fas fa-trash"></i> Yes, Delete Post
+        </button>
+        <a
+          href="{% url 'post_detail' pk=object.pk %}"
+          class="btn btn-secondary"
+        >
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

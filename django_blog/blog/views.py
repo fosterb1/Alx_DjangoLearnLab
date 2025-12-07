@@ -2,13 +2,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from .models import Post, UserProfile
-from .forms import CustomUserCreationForm, UserProfileForm
+from .forms import CustomUserCreationForm, UserProfileForm, PostForm
 
-# Authentication Views
+# Authentication Views (keep these as function-based)
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -71,52 +74,97 @@ def profile_view(request):
     }
     return render(request, 'blog/profile.html', context)
 
-# Existing Blog Views
-def post_list(request):
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
-    return render(request, 'blog/post_list.html', {'posts': posts})
+# ========================================
+# Blog Post CRUD Views (Class-Based)
+# ========================================
+# These views implement complete Create, Read, Update, Delete operations
+# for blog posts with appropriate permissions and access control.
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
-
-@login_required
-def post_create(request):
-    if request.method == "POST":
-        # Simplified for now - we'll add form later
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        post = Post.objects.create(
-            title=title,
-            content=content,
-            author=request.user
-        )
-        return redirect('post_detail', pk=post.pk)
-    return render(request, 'blog/post_form.html')
-
-@login_required
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if post.author != request.user:
-        messages.error(request, 'You can only edit your own posts.')
-        return redirect('post_list')
+class PostListView(ListView):
+    """
+    READ Operation - List all blog posts
+    - Public access (no authentication required)
+    - Displays posts in reverse chronological order
+    - Implements pagination (5 posts per page)
+    - Only shows posts with published_date <= current time
+    """
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 5
     
-    if request.method == "POST":
-        # Simplified for now
-        post.title = request.POST.get('title')
-        post.content = request.POST.get('content')
-        post.save()
-        return redirect('post_detail', pk=post.pk)
-    
-    return render(request, 'blog/post_form.html', {'post': post})
+    def get_queryset(self):
+        return Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
 
-@login_required
-def post_delete(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if post.author != request.user:
-        messages.error(request, 'You can only delete your own posts.')
-        return redirect('post_list')
+class PostDetailView(DetailView):
+    """
+    READ Operation - Display individual blog post
+    - Public access (no authentication required)
+    - Shows complete post content with author info
+    - Edit/Delete buttons visible only to post author
+    """
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    """
+    CREATE Operation - Create new blog post
+    - Requires authentication (LoginRequiredMixin)
+    - Automatically sets logged-in user as author
+    - Uses PostForm for data validation
+    - Redirects to post list after successful creation
+    """
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+    success_url = reverse_lazy('post_list')
     
-    post.delete()
-    messages.success(request, 'Post deleted successfully.')
-    return redirect('post_list')
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Post created successfully!')
+        return super().form_valid(form)
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """
+    UPDATE Operation - Edit existing blog post
+    - Requires authentication (LoginRequiredMixin)
+    - Author-only access (UserPassesTestMixin)
+    - Pre-fills form with existing post data
+    - Redirects to post detail after successful update
+    """
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Post updated successfully!')
+        return super().form_valid(form)
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """
+    DELETE Operation - Remove blog post
+    - Requires authentication (LoginRequiredMixin)
+    - Author-only access (UserPassesTestMixin)
+    - Shows confirmation page before deletion
+    - Redirects to post list after successful deletion
+    """
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('post_list')
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Post deleted successfully!')
+        return super().delete(request, *args, **kwargs)

@@ -1,22 +1,73 @@
-{% extends 'blog/base.html' %} {% load static %} {% block title %}{{ post.title
-}}{% endblock %} {% block content %}
-<article class="post-detail">
-  <h1>{{ post.title }}</h1>
-  <div class="post-meta">
-    <span>Author: {{ post.author.username }}</span> |
-    <span>Published: {{ post.published_date|date:"F d, Y H:i" }}</span>
-  </div>
+{% extends 'blog/base.html' %}
 
-  <div class="post-content">{{ post.content|linebreaks }}</div>
+{% block title %}{{ post.title }} - Django Blog{% endblock %}
 
-  <div class="post-actions">
-    <a href="{% url 'post_list' %}" class="btn">Back to Posts</a>
-    {% if user == post.author %}
-    <a href="{% url 'post_edit' pk=post.pk %}" class="btn">Edit Post</a>
-    <a href="{% url 'post_delete' pk=post.pk %}" class="btn btn-danger"
-      >Delete Post</a
-    >
-    {% endif %}
-  </div>
-</article>
+{% block content %}
+<div class="post-detail-container">
+  <article class="post-detail">
+    <div class="post-header">
+      <h1 class="post-title">{{ post.title }}</h1>
+
+      <div class="post-meta-detail">
+        <div class="author-info">
+          <div class="author-avatar">
+            <i class="fas fa-user-circle fa-2x"></i>
+          </div>
+          <div class="author-details">
+            <strong>{{ post.author.username }}</strong>
+            <span class="post-date"
+              >{{ post.published_date|date:"F d, Y • g:i A" }}</span
+            >
+            {% if post.updated_date != post.published_date %}
+            <span class="updated-date"
+              >Updated: {{ post.updated_date|date:"F d, Y" }}</span
+            >
+            {% endif %}
+          </div>
+        </div>
+
+        {% if user == post.author %}
+        <div class="post-actions-detail">
+          <a href="{% url 'post_edit' pk=post.pk %}" class="btn btn-secondary">
+            <i class="fas fa-edit"></i> Edit
+          </a>
+          <a href="{% url 'post_delete' pk=post.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="post-content">{{ post.content|linebreaks }}</div>
+
+    <div class="post-footer">
+      <div class="post-tags">
+        <span class="tag"> <i class="fas fa-tag"></i> Django </span>
+        <span class="tag"> <i class="fas fa-tag"></i> Blog </span>
+      </div>
+
+      <div class="navigation-buttons">
+        <a href="{% url 'post_list' %}" class="btn">
+          <i class="fas fa-arrow-left"></i> Back to Posts
+        </a>
+
+        {% if user.is_authenticated and user != post.author %}
+        <button
+          class="btn btn-secondary"
+          onclick="alert('Feature coming soon!')"
+        >
+          <i class="fas fa-heart"></i> Like
+        </button>
+        <button
+          class="btn btn-secondary"
+          onclick="alert('Feature coming soon!')"
+        >
+          <i class="fas fa-comment"></i> Comment
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </article>
+</div>
 {% endblock %}
