@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from taggit.forms import TagWidget
 from .models import Post, Comment, Tag
 
 class CustomUserCreationForm(UserCreationForm):
@@ -51,23 +52,24 @@ class PostForm(forms.ModelForm):
         - title: CharField with minimum 5 characters validation
         - content: TextField for post body
         - tags: ManyToMany field for categorization (custom Tag model)
-        - taggit_tags: django-taggit integration for tag management
+        - taggit_tags: django-taggit integration for tag management with TagWidget
     
     Features:
         - Custom validation for title length
         - Bootstrap-styled form controls
         - Placeholder text for user guidance
-        - Tag input with comma-separated values
+        - Tag input with comma-separated values using TagWidget()
         - Supports both custom Tag model and django-taggit
         - Author field excluded (set automatically in view)
     """
     tags_input = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
+        widget=TagWidget(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas (e.g., Django, Python, Web)'
+            'placeholder': 'Enter tags separated by commas (e.g., Django, Python, Web)',
+            'data-role': 'tagsinput'
         }),
-        help_text='Separate tags with commas - supports django-taggit'
+        help_text='Separate tags with commas - uses django-taggit TagWidget'
     )
     
     class Meta:
