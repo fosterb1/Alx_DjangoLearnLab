@@ -1,0 +1,57 @@
+{% extends 'blog/base.html' %} {% block title %}My Profile - Django Blog{%
+endblock %} {% block content %}
+<div class="profile-container">
+  <div class="profile-header">
+    <h2>My Profile</h2>
+    <div class="profile-stats">
+      <span>Member since: {{ user.date_joined|date:"F d, Y" }}</span>
+    </div>
+  </div>
+
+  <div class="profile-card">
+    <h3>Account Information</h3>
+
+    <form method="post" class="profile-form">
+      {% csrf_token %} {% for field in user_form %}
+      <div class="form-group">
+        {{ field.label_tag }} {{ field }} {% if field.errors %}
+        <div class="error-list">
+          {% for error in field.errors %}
+          <span class="error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+        <a href="{% url 'post_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+
+    <div class="profile-actions">
+      <h4>Account Actions</h4>
+      <ul>
+        <li><a href="{% url 'password_change' %}">Change Password</a></li>
+        <li><a href="#" class="text-danger">Delete Account</a></li>
+      </ul>
+    </div>
+
+    {% if profile %}
+    <div class="profile-info">
+      <h4>Additional Information</h4>
+      <p><strong>Bio:</strong> {{ profile.bio|default:"Not provided" }}</p>
+      <p>
+        <strong>Website:</strong>
+        {% if profile.website %}
+        <a href="{{ profile.website }}" target="_blank"
+          >{{ profile.website }}</a
+        >
+        {% else %} Not provided {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

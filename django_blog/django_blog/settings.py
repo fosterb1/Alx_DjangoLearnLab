@@ -42,7 +42,9 @@ ROOT_URLCONF = 'django_blog.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -60,12 +62,12 @@ WSGI_APPLICATION = 'django_blog.wsgi.application'
 # Database - SIMPLE SQLite version
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_blog_db',      # Database name
-        'USER': 'django_user',         # Database username
-        'PASSWORD': 'password123',     # Database password
-        'HOST': 'localhost',           # Database host
-        'PORT': '5432',                # PostgreSQL default port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(BASE_DIR / 'db.sqlite3'),  # Use str() for Windows
+        'USER': 'django_user',
+        'PASSWORD': 'password123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
