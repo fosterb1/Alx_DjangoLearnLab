@@ -12,6 +12,7 @@ class Post(models.Model):
     published_date = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     updated_date = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField('Tag', related_name='posts', blank=True)
     
     def __str__(self):
         return self.title
@@ -25,6 +26,43 @@ class Post(models.Model):
     
     class Meta:
         ordering = ['-published_date']
+
+class Comment(models.Model):
+    """
+    Comment model for blog posts
+    
+    Allows users to leave comments on blog posts with:
+    - Many-to-one relationship with Post
+    - Author tracking via User foreign key
+    - Timestamps for creation and updates
+    """
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f'Comment by {self.author.username} on {self.post.title}'
+
+class Tag(models.Model):
+    """
+    Tag model for categorizing blog posts
+    
+    Allows:
+    - Multiple tags per post (many-to-many relationship)
+    - Tag-based filtering and organization
+    """
+    name = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['name']
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

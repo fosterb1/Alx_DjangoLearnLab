@@ -8,8 +8,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .models import Post, UserProfile
-from .forms import CustomUserCreationForm, UserProfileForm, PostForm
+from django.db.models import Q
+from .models import Post, UserProfile, Comment, Tag
+from .forms import CustomUserCreationForm, UserProfileForm, PostForm, CommentForm
 
 # Authentication Views (keep these as function-based)
 def register_view(request):
@@ -101,11 +102,19 @@ class PostDetailView(DetailView):
     READ Operation - Display individual blog post
     - Public access (no authentication required)
     - Shows complete post content with author info
+    - Displays all comments
+    - Comment form for authenticated users
     - Edit/Delete buttons visible only to post author
     """
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comments'] = self.object.comments.all()
+        context['comment_form'] = CommentForm()
+        return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     """
@@ -168,3 +177,109 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Post deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+# ========================================
+# Comment CRUD Views
+# ========================================
+
+@login_required
+def add_comment(request, pk):
+    """
+    CREATE Operation - Add comment to blog post
+    - Requires authentication
+    - Creates comment linked to post and user
+    """
+    post = get_object_or_404(Post, pk=pk)
+    
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Comment added successfully!')
+            return redirect('post_detail', pk=post.pk)
+    
+    return redirect('post_detail', pk=post.pk)
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """
+    UPDATE Operation - Edit existing comment
+    - Requires authentication
+    - Author-only access
+    """
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Comment updated successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """
+    DELETE Operation - Remove comment
+    - Requires authentication
+    - Author-only access
+    """
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Comment deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+# ========================================
+# Search and Filter Views
+# ========================================
+
+def search_posts(request):
+    """
+    Search functionality for blog posts
+    - Searches in title, content, and tags
+    - Uses Q objects for complex queries
+    """
+    query = request.GET.get('q', '')
+    posts = Post.objects.all()
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    context = {
+        'posts': posts,
+        'query': query,
+    }
+    return render(request, 'blog/search_results.html', context)
+
+def posts_by_tag(request, tag_name):
+    """
+    Filter posts by tag
+    - Shows all posts with specified tag
+    """
+    tag = get_object_or_404(Tag, name=tag_name)
+    posts = tag.posts.all()
+    
+    context = {
+        'tag': tag,
+        'posts': posts,
+    }
+    return render(request, 'blog/posts_by_tag.html', context)

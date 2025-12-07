@@ -47,6 +47,27 @@ urlpatterns = [
     # DELETE - Remove post (Author only)
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
     
+    # ========================================
+    # Comment URLs
+    # ========================================
+    # CREATE - Add comment to post (Authenticated users)
+    path('post/<int:pk>/comments/new/', views.add_comment, name='add_comment'),
+    
+    # UPDATE - Edit comment (Author only)
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment_edit'),
+    
+    # DELETE - Remove comment (Author only)
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
+    
+    # ========================================
+    # Search and Tag URLs
+    # ========================================
+    # Search posts
+    path('search/', views.search_posts, name='search_posts'),
+    
+    # Filter posts by tag
+    path('tags/<str:tag_name>/', views.posts_by_tag, name='posts_by_tag'),
+    
     # Optional: Password reset URLs
     path('password-change/', 
          auth_views.PasswordChangeView.as_view(template_name='blog/password_change.html'), 
