@@ -78,7 +78,35 @@ class CommentForm(forms.ModelForm):
 
 #### CREATE - Add Comment
 
-**Function:** `add_comment(request, pk)`
+**Two implementations available:**
+
+**1. Class-Based View:** `CommentCreateView`
+**Location:** `blog/views.py`
+**Access:** Authenticated users only
+
+```python
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """
+    CREATE Operation - Add comment to blog post (class-based view)
+    - Requires authentication (LoginRequiredMixin)
+    - Automatically sets post and author
+    - Redirects to post detail after creation
+    """
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    
+    def form_valid(self, form):
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Comment added successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
+```
+
+**2. Function-Based View:** `add_comment(request, pk)`
 **Location:** `blog/views.py`
 **Access:** Authenticated users only
 

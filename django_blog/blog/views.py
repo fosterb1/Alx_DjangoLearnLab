@@ -185,7 +185,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 @login_required
 def add_comment(request, pk):
     """
-    CREATE Operation - Add comment to blog post
+    CREATE Operation - Add comment to blog post (function-based view)
     - Requires authentication
     - Creates comment linked to post and user
     """
@@ -202,6 +202,26 @@ def add_comment(request, pk):
             return redirect('post_detail', pk=post.pk)
     
     return redirect('post_detail', pk=post.pk)
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """
+    CREATE Operation - Add comment to blog post (class-based view)
+    - Requires authentication (LoginRequiredMixin)
+    - Automatically sets post and author
+    - Redirects to post detail after creation
+    """
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    
+    def form_valid(self, form):
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Comment added successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
