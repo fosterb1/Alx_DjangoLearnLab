@@ -50,13 +50,15 @@ class PostForm(forms.ModelForm):
     Fields:
         - title: CharField with minimum 5 characters validation
         - content: TextField for post body
-        - tags: ManyToMany field for categorization
+        - tags: ManyToMany field for categorization (custom Tag model)
+        - taggit_tags: django-taggit integration for tag management
     
     Features:
         - Custom validation for title length
         - Bootstrap-styled form controls
         - Placeholder text for user guidance
         - Tag input with comma-separated values
+        - Supports both custom Tag model and django-taggit
         - Author field excluded (set automatically in view)
     """
     tags_input = forms.CharField(
@@ -65,7 +67,7 @@ class PostForm(forms.ModelForm):
             'class': 'form-control',
             'placeholder': 'Enter tags separated by commas (e.g., Django, Python, Web)'
         }),
-        help_text='Separate tags with commas'
+        help_text='Separate tags with commas - supports django-taggit'
     )
     
     class Meta:
@@ -86,8 +88,12 @@ class PostForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            # Pre-populate tags for editing
-            self.initial['tags_input'] = ', '.join([tag.name for tag in self.instance.tags.all()])
+            # Pre-populate tags for editing (using both custom tags and taggit)
+            custom_tags = ', '.join([tag.name for tag in self.instance.tags.all()])
+            taggit_tags = ', '.join([tag.name for tag in self.instance.taggit_tags.all()])
+            # Combine both tag sources
+            all_tags = set(filter(None, custom_tags.split(', ') + taggit_tags.split(', ')))
+            self.initial['tags_input'] = ', '.join(sorted(all_tags))
     
     def clean_title(self):
         title = self.cleaned_data.get('title')
@@ -100,16 +106,23 @@ class PostForm(forms.ModelForm):
         if commit:
             instance.save()
         
-        # Handle tags
+        # Handle tags with both custom Tag model and django-taggit
         if 'tags_input' in self.cleaned_data:
             tags_input = self.cleaned_data['tags_input']
+            
+            # Clear existing tags
             instance.tags.clear()
+            instance.taggit_tags.clear()
             
             if tags_input:
                 tag_names = [name.strip() for name in tags_input.split(',') if name.strip()]
                 for tag_name in tag_names:
+                    # Add to custom Tag model
                     tag, created = Tag.objects.get_or_create(name=tag_name)
                     instance.tags.add(tag)
+                
+                # Add to django-taggit (preferred method)
+                instance.taggit_tags.add(*tag_names)
         
         return instance
 

@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
@@ -13,6 +14,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     updated_date = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField('Tag', related_name='posts', blank=True)
+    taggit_tags = TaggableManager(blank=True, related_name='tagged_posts')  # django-taggit integration
     
     def __str__(self):
         return self.title
