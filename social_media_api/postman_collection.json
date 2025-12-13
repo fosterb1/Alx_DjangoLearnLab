@@ -1,0 +1,511 @@
+{
+  "info": {
+    "name": "Social Media API - Posts & Comments",
+    "description": "Complete API testing collection for Posts and Comments functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "post_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "List All Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Posts with Pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/?page=1&page_size=10",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/?search=django",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "django"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Posts by Author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/?author=1",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('post_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Getting Started with Django REST Framework\",\n    \"content\": \"Django REST Framework is a powerful toolkit for building Web APIs. It provides features like authentication, serialization, and viewsets that make API development easier and faster.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Post Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Post (Full)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated: Advanced Django REST Framework\",\n    \"content\": \"This is updated content about Django REST Framework with more advanced topics including viewsets, routers, and custom permissions.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Post (Partial)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Partially Updated Title\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "List All Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Comments by Post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/?post={{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", ""],
+              "query": [
+                {
+                  "key": "post",
+                  "value": "{{post_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('comment_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"post\": {{post_id}},\n    \"content\": \"Great post! Very informative and helpful.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comment Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Comment (Full)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"post\": {{post_id}},\n    \"content\": \"Updated comment: This is even more helpful now!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Comment (Partial)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"Partially updated comment content\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{comment_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Permission Tests",
+      "item": [
+        {
+          "name": "Try Create Post Without Auth",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Post\",\n    \"content\": \"This should fail\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Try Update Other User's Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Trying to update\",\n    \"content\": \"This should fail if not owner\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/1/",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "1", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
