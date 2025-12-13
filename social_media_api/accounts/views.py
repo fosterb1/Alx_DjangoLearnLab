@@ -3,10 +3,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
-from rest_framework import status, generics
-from django.contrib.auth import login, logout
+from rest_framework import status, generics, permissions
+from django.contrib.auth import login, logout, get_user_model
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserProfileSerializer
 from .models import User
+
+# Alias for compatibility
+CustomUser = get_user_model()
 
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -65,8 +68,8 @@ class UserProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FollowUserView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
         user_to_follow = get_object_or_404(User, id=user_id)
@@ -101,8 +104,8 @@ class FollowUserView(generics.GenericAPIView):
         )
 
 class UnfollowUserView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
         user_to_unfollow = get_object_or_404(User, id=user_id)
